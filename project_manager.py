@@ -6,7 +6,7 @@ from functools import partial
 
 import Database
 from login_ui import Ui_Login
-from main_ui import Ui_Main
+from main_ui import Ui_MainWindow
 from create_account_ui import Ui_CreateAccount
 import driver
 
@@ -16,8 +16,17 @@ CURRENT_USERNAME = ""
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
-        self.ui = Ui_Main()
+        self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+
+        projects = db.getProjects()
+        self.populateProjectList(projects)
+
+    def populateProjectList(self, projects):
+        ''' Load listwidget with project names '''
+        for project_id, project_info in projects.items():
+            item = QtWidgets.QListWidgetItem(f"{project_info['project_name']}")
+            Ui_MainWindow.listWidget.addItem(item)
 
 class CreateAccountWindow(QtWidgets.QMainWindow):
     def __init__(self):
