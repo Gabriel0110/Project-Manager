@@ -21,8 +21,42 @@ class Database:
                                         creation_date VARCHAR(10) NOT NULL
                                     ); """
 
+        self.create_projects_table = """CREATE TABLE IF NOT EXISTS projects (
+                                        project_id INTEGER PRIMARY KEY,
+                                        project_name VARCHAR(100) NOT NULL,
+                                        project_creation_date VARCHAR(10) NOT NULL,
+                                        project_due_date VARCHAR(10),
+                                        project_completed_date VARCHAR(10),
+                                        project_description VARCHAR(1000),
+                                        project_isCompleted INTEGER DEFAULT 0,
+                                        project_notes VARCHAR(1000000)
+                                    ); """
+
+        self.create_tasks_table = """CREATE TABLE IF NOT EXISTS tasks (
+                                        task_id INTEGER PRIMARY KEY,
+                                        project_id INTEGER NOT NULL,
+                                        task_name VARCHAR(100) NOT NULL,
+                                        task_creation_date VARCHAR(10) NOT NULL,
+                                        task_due_date VARCHAR(10),
+                                        task_completed_date VARCHAR(10),
+                                        task_description VARCHAR(1000),
+                                        task_isCompleted INTEGER DEFAULT 0,
+                                        task_notes VARCHAR(1000000)
+                                    ); """
+
+        self.create_issues_table = """CREATE TABLE IF NOT EXISTS issues (
+                                        issue_id INTEGER PRIMARY KEY,
+                                        project_id INTEGER NOT NULL,
+                                        issue_name VARCHAR(100) NOT NULL,
+                                        issue_creation_date VARCHAR(10) NOT NULL,
+                                        issue_completed_date VARCHAR(10),
+                                        issue_description VARCHAR(1000),
+                                        issue_priority VARCHAR(100),
+                                        issue_isCompleted INTEGER DEFAULT 0
+                                    ); """
+
         if self.conn is not None:
-            self.create_tables(self.conn, [self.create_accounts_table])
+            self.create_tables(self.conn, [self.create_accounts_table, self.create_projects_table, self.create_tasks_table, self.create_issues_table])
         else:
             print("Error -- no database connection found.")
             exit()
