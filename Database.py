@@ -122,6 +122,16 @@ class Database:
         except Error as e:
             print(e)
 
+    def getProjectIds(self):
+        c = self.conn.cursor()
+        try:
+            id_col = c.execute("""SELECT project_id FROM projects""")
+            ids = [idx[0] for idx in id_col]
+            return ids
+        except Error as e:
+            print("Could not get projects IDs: {}".format(e))
+            return
+
     def getCurrentMonth(self):
         current_month = datetime.now().month
         if current_month in [1, 2, 3, 4, 5, 6, 7, 8, 9]:
@@ -131,6 +141,20 @@ class Database:
         return current_month
 
     def getProjects(self):
+        c = self.conn.cursor()
+        try:
+            projects = c.execute("""SELECT project_id, project_name, project_creation_date, project_due_date, project_completed_date, project_description, 
+            project_isCompleted, project_notes FROM projects""").fetchall()
+
+            projects_dict = {}
+            for (proj_id, proj_name, proj_creation_date, proj_due_date, proj_completed_date, proj_desc, proj_isCompleted, proj_notes) in projects:
+                projects_dict[proj_id] = {"project_name":proj_name, "project_creation_date":proj_creation_date, "project_due_date":proj_due_date, "project_completed_date":proj_completed_date, "project_description":proj_desc, "project_isCompleted":proj_isCompleted, "project_notes":proj_notes}
+            print("Projects: {}".format(projects_dict))
+            return projects_dict
+        except Error as e:
+            print(e)
+
+    def getSelectedProject(self, project):
         c = self.conn.cursor()
         try:
             projects = c.execute("""SELECT project_id, project_name, project_creation_date, project_due_date, project_completed_date, project_description, 

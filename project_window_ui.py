@@ -79,9 +79,12 @@ class Ui_ProjectWindow(object):
         self.email_button = QtWidgets.QPushButton(self.centralwidget)
         self.email_button.setGeometry(QtCore.QRect(10, 10, 81, 23))
         self.email_button.setObjectName("email_button")
+        self.complete_project_button = QtWidgets.QPushButton(self.centralwidget)
+        self.complete_project_button.setGeometry(QtCore.QRect(310, 500, 181, 28))
+        self.complete_project_button.setObjectName("complete_project_button")
         ProjectWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(ProjectWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 793, 20))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 793, 25))
         self.menubar.setObjectName("menubar")
         ProjectWindow.setMenuBar(self.menubar)
         self.statusbar = QtWidgets.QStatusBar(ProjectWindow)
@@ -108,6 +111,7 @@ class Ui_ProjectWindow(object):
         self.delete_checkbox_one.setText(_translate("ProjectWindow", "Delete"))
         self.delete_checkbox_two.setText(_translate("ProjectWindow", "Yes, Delete"))
         self.email_button.setText(_translate("ProjectWindow", "Email Reminder"))
+        self.complete_project_button.setText(_translate("ProjectWindow", "Complete Project"))
 
 
 if __name__ == "__main__":

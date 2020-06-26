@@ -69,6 +69,39 @@ def processLogin(username, password):
         return True
 
 
+def createProject(proj_name, proj_desc):
+    db = Database.Database()
+
+    if len(proj_name) == 0:
+        print("Error - project needs a name to create it.")
+        showDialog("Error - project needs a name to create it.", "Error")
+        return
+    else:
+        idx = getID(db)
+        date = datetime.now().strftime("%m/%d/%Y")
+        query = """INSERT INTO projects VALUES (?, ?, ?, ?, ?, ?, ?, ?);"""
+        values = (int(idx), str(proj_name), str(date), "NULL", "NULL", str(proj_desc), 0, "NULL")
+        insertions = {}
+        insertions[values] = query
+        result = db.insert(insertions)
+        if result is False:
+            print("Error with submitting these entries.")
+            return False
+        else:
+            return True
+
+
+def getID(db):
+        all_ids = db.getProjectIds()
+        # Get a free ID slot by checking against IDs in database
+        id = 1
+        while True:
+            if id in all_ids:
+                print("ID already found in DB -- incrementing before assigning.")
+                id += 1
+            else:
+                return id
+
 def showDialog(msgText, msgTitle):
    msgBox = QMessageBox()
    msgBox.setIcon(QMessageBox.Warning)
