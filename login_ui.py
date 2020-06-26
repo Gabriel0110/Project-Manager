@@ -16,6 +16,7 @@ class Ui_Login(object):
     def setupUi(self, Login):
         Login.setObjectName("Login")
         Login.resize(790, 588)
+        Login.setFixedSize(790, 588)
         Login.setAutoFillBackground(True)
         self.centralwidget = QtWidgets.QWidget(Login)
         self.centralwidget.setObjectName("centralwidget")

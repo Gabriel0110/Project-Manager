@@ -16,6 +16,7 @@ class Ui_CreateProjectWindow(object):
     def setupUi(self, CreateProjectWindow):
         CreateProjectWindow.setObjectName("CreateProjectWindow")
         CreateProjectWindow.resize(486, 552)
+        CreateProjectWindow.setFixedSize(486, 552)
         font = QtGui.QFont()
         font.setPointSize(8)
         CreateProjectWindow.setFont(font)

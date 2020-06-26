@@ -15,6 +15,7 @@ class Ui_ProjectWindow(object):
     def setupUi(self, ProjectWindow):
         ProjectWindow.setObjectName("ProjectWindow")
         ProjectWindow.resize(793, 600)
+        ProjectWindow.setFixedSize(793, 600)
         self.centralwidget = QtWidgets.QWidget(ProjectWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.project_name_label = QtWidgets.QLabel(self.centralwidget)

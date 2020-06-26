@@ -16,6 +16,7 @@ class Ui_CreateAccount(object):
     def setupUi(self, CreateAccount):
         CreateAccount.setObjectName("CreateAccount")
         CreateAccount.resize(800, 600)
+        CreateAccount.setFixedSize(800, 600)
         self.centralwidget = QtWidgets.QWidget(CreateAccount)
         self.centralwidget.setObjectName("centralwidget")
         self.label = QtWidgets.QLabel(self.centralwidget)

@@ -15,6 +15,8 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(631, 538)
+        MainWindow.setFixedSize(631, 538)
+
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.label_2 = QtWidgets.QLabel(self.centralwidget)
@@ -67,6 +69,7 @@ class Ui_MainWindow(object):
         self.create_new_project_button.clicked.connect(MainWindow.createProject)
         self.open_selected_project_button.clicked.connect(MainWindow.openSelectedProject)
         self.logout_button.clicked.connect(MainWindow.logout)
+        self.actionExit.triggered.connect(lambda: exit())
 
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
