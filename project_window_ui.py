@@ -92,6 +92,9 @@ class Ui_ProjectWindow(object):
         ProjectWindow.setStatusBar(self.statusbar)
 
         self.retranslateUi(ProjectWindow)
+
+        self.close_project_button.clicked.connect(ProjectWindow.closeProject)
+
         QtCore.QMetaObject.connectSlotsByName(ProjectWindow)
 
     def retranslateUi(self, ProjectWindow):

@@ -48,6 +48,13 @@ class MainWindow(QtWidgets.QMainWindow):
         self.project_window = ProjectWindow(project)
         self.project_window.show()
 
+    def logout(self):
+        global CURRENT_USERNAME
+        self.hide()
+        self.login_window = LoginWindow()
+        CURRENT_USERNAME = ""
+        self.login_window.show()
+
 class CreateAccountWindow(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
@@ -102,13 +109,19 @@ class ProjectWindow(QtWidgets.QMainWindow):
         self.ui = Ui_ProjectWindow()
         self.ui.setupUi(self)
         self.current_project = project
-        self.load_project()
+        self.loadProject()
 
-    def load_project(self):
+    def loadProject(self):
         proj_id = list(self.current_project.keys())[0]
         proj_info = self.current_project[proj_id]
         self.ui.project_name_label.setText(proj_info["project_name"])
         self.ui.project_description_label.setText(proj_info["project_description"])
+
+    def closeProject(self):
+        self.hide()
+        self.main_window = MainWindow()
+        self.main_window.selected_project = ""
+        self.main_window.show()
 
 class CreateProjectWindow(QtWidgets.QMainWindow):
     def __init__(self):

@@ -66,6 +66,7 @@ class Ui_MainWindow(object):
         self.project_list_widget.itemClicked.connect(MainWindow.itemSelected)
         self.create_new_project_button.clicked.connect(MainWindow.createProject)
         self.open_selected_project_button.clicked.connect(MainWindow.openSelectedProject)
+        self.logout_button.clicked.connect(MainWindow.logout)
 
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
