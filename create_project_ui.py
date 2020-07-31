@@ -65,6 +65,7 @@ class Ui_CreateProjectWindow(object):
         self.retranslateUi(CreateProjectWindow)
 
         self.create_button.clicked.connect(partial(CreateProjectWindow.create, self.project_name_edit, self.desc_plaintext_widget))
+        self.cancel_button.clicked.connect(CreateProjectWindow.close)
 
         QtCore.QMetaObject.connectSlotsByName(CreateProjectWindow)
 

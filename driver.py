@@ -1,7 +1,8 @@
 import Database
 from datetime import datetime
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import QMessageBox
+from PyQt5.QtWidgets import QMessageBox, QInputDialog
+import pyautogui as pag
 
 import project_manager as PM
 
@@ -79,8 +80,8 @@ def createProject(proj_name, proj_desc):
     else:
         idx = getID(db)
         date = datetime.now().strftime("%m/%d/%Y")
-        query = """INSERT INTO projects VALUES (?, ?, ?, ?, ?, ?, ?, ?);"""
-        values = (int(idx), str(proj_name), str(date), "NULL", "NULL", str(proj_desc), 0, "NULL")
+        query = """INSERT INTO projects VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);"""
+        values = (int(idx), str(PM.CURRENT_USERNAME), str(proj_name), str(date), "NULL", "NULL", str(proj_desc), 0, "NULL")
         insertions = {}
         insertions[values] = query
         result = db.insert(insertions)
@@ -90,17 +91,127 @@ def createProject(proj_name, proj_desc):
         else:
             return True
 
+def createTask(task_name, task_desc):
+    pass
+
 
 def getID(db):
-        all_ids = db.getProjectIds()
-        # Get a free ID slot by checking against IDs in database
-        id = 1
-        while True:
-            if id in all_ids:
-                print("ID already found in DB -- incrementing before assigning.")
-                id += 1
+    all_ids = db.getProjectIds()
+    # Get a free ID slot by checking against IDs in database
+    id = 1
+    while True:
+        if id in all_ids:
+            print("ID already found in DB -- incrementing before assigning.")
+            id += 1
+        else:
+            return id
+
+
+def getFileID(db):
+    all_ids = db.getFileIds()
+    # Get a free ID slot by checking against IDs in database
+    id = 1
+    while True:
+        if id in all_ids:
+            print("ID already found in DB -- incrementing before assigning.")
+            id += 1
+        else:
+            return id
+
+
+def insertFile(file_name):
+    db = Database.Database()
+
+    if len(file_name) == 0:
+        print("Error - file needs a name to create it.")
+        showDialog("Error - file needs a name to create it.", "Error")
+        return
+    else:
+        idx = getFileID(db)
+        date = datetime.now().strftime("%m/%d/%Y")
+        contents = "<Insert Code>"
+        query = """INSERT INTO code_files VALUES (?, ?, ?, ?, ?, ?, ?, ?);"""
+        values = (int(idx), str(PM.CURRENT_USERNAME), str(file_name), str(date), str(date), str(contents), 0, "NULL")
+        insertions = {}
+        insertions[values] = query
+        result = db.insert(insertions)
+        if result is False:
+            print("Error with submitting file entry.")
+            return False
+        else:
+            return True
+
+
+def insertImportedFile(file_name, file_path, file_contents):
+    """Inserts imported file"""
+
+    db = Database.Database()
+
+    if len(file_name) == 0:
+        print("Error - file needs a name to create it.")
+        showDialog("Error - file needs a name to create it.", "Error")
+        return
+    else:
+        idx = getFileID(db)
+        date = datetime.now().strftime("%m/%d/%Y")
+        query = """INSERT INTO code_files VALUES (?, ?, ?, ?, ?, ?, ?, ?);"""
+        values = (int(idx), str(PM.CURRENT_USERNAME), str(file_name), str(date), str(date), str(file_contents), 1, str(file_path))
+        insertions = {}
+        insertions[values] = query
+        result = db.insert(insertions)
+        if result is False:
+            print("Error with submitting file entry.")
+            return False
+        else:
+            return True
+
+
+def writeToFile(path, contents):
+    with open(path, "r+") as f:
+        f.write(contents)
+
+
+def saveFile(file_name, contents, file_info):
+    choice = pag.confirm("Do you want to save your changes for this file?", "Save changes?", ["Yes", "No"])
+    if choice == "Yes":
+        db = Database.Database()
+        date = datetime.now().strftime("%m/%d/%Y")
+        query = """UPDATE code_files SET file_last_save_date = ?, file_contents = ? WHERE file_name = ?;"""
+        values = (str(date), str(contents), str(file_name))
+        result = db.update(query, values)
+
+        if file_info["file_isImported"] == 1:
+            writeToFile(file_info["file_path"], contents)
+            print("Contents saved/overwritten to file at {}".format(file_info["file_path"]))
+
+        if result is False:
+            print("Error with updating file contents.")
+            return False
+        else:
+            return True
+    else:
+        return
+
+
+def deleteFile(file_name):
+    choice = pag.confirm(f"Are you SURE you want to delete the SELECTED file: '{file_name}'?", "Really delete file?", ["Yes", "No"])
+    if choice == "Yes":
+        choice2 = pag.confirm(f"Are you REALLY sure you want to delete the SELECTED file: '{file_name}'?", "Really delete file?", ["DO IT", "No"])
+        if choice2 == "DO IT":
+            db = Database.Database()
+            query = """DELETE FROM code_files WHERE file_name = ?;"""
+            values = (str(file_name),)
+            result = db.delete(query, values)
+            if result is False:
+                print("Error with deleting file.")
+                return False
             else:
-                return id
+                return True
+        else:
+            return
+    else:
+        return
+
 
 def showDialog(msgText, msgTitle):
    msgBox = QMessageBox()

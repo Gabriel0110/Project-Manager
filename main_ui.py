@@ -15,8 +15,6 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(631, 538)
-        MainWindow.setFixedSize(631, 538)
-
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.label_2 = QtWidgets.QLabel(self.centralwidget)
@@ -48,9 +46,12 @@ class Ui_MainWindow(object):
         self.logout_button = QtWidgets.QPushButton(self.centralwidget)
         self.logout_button.setGeometry(QtCore.QRect(540, 10, 75, 23))
         self.logout_button.setObjectName("logout_button")
+        self.open_editor_button = QtWidgets.QPushButton(self.centralwidget)
+        self.open_editor_button.setGeometry(QtCore.QRect(270, 440, 101, 23))
+        self.open_editor_button.setObjectName("open_editor_button")
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 631, 25))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 631, 20))
         self.menubar.setObjectName("menubar")
         self.menuFile = QtWidgets.QMenu(self.menubar)
         self.menuFile.setObjectName("menuFile")
@@ -70,6 +71,7 @@ class Ui_MainWindow(object):
         self.open_selected_project_button.clicked.connect(MainWindow.openSelectedProject)
         self.logout_button.clicked.connect(MainWindow.logout)
         self.actionExit.triggered.connect(lambda: exit())
+        self.open_editor_button.clicked.connect(MainWindow.openCodeEditor)
 
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
@@ -80,6 +82,7 @@ class Ui_MainWindow(object):
         self.create_new_project_button.setText(_translate("MainWindow", "Create New Project"))
         self.open_selected_project_button.setText(_translate("MainWindow", "Open Selected Project"))
         self.logout_button.setText(_translate("MainWindow", "Logout"))
+        self.open_editor_button.setText(_translate("MainWindow", "Open Code Editor"))
         self.menuFile.setTitle(_translate("MainWindow", "File"))
         self.actionExit.setText(_translate("MainWindow", "Exit"))
 

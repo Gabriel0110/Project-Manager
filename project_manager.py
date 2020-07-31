@@ -3,17 +3,27 @@ import time
 from datetime import datetime
 from PyQt5 import QtCore, QtGui, QtWidgets
 from functools import partial
+import pyautogui as pag
+import tkinter as tk
+from tkinter import *
+from tkinter import filedialog
 
 import Database
+
 from login_ui import Ui_Login
 from main_ui import Ui_MainWindow
 from create_account_ui import Ui_CreateAccount
 from create_project_ui import Ui_CreateProjectWindow
 from project_window_ui import Ui_ProjectWindow
+from code_editor_ui import Ui_CodeEditorWindow
+
 import driver
 
 # Who is logged in
 CURRENT_USERNAME = ""
+
+CURRENT_PROJECT = None
+CURRENT_LOADED_FILE = None
 
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
@@ -23,7 +33,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.selected_project = ""
 
         self.projects = db.getProjects()
-        self.populateProjectList(self.projects)
+        if self.projects:
+            self.populateProjectList(self.projects)
+        else:
+            pass
 
     def populateProjectList(self, projects):
         ''' Load listwidget with project names '''
@@ -47,6 +60,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.hide()
         self.project_window = ProjectWindow(project)
         self.project_window.show()
+
+    def openCodeEditor(self):
+        self.code_editor_window = CodeEditorWindow()
+        self.code_editor_window.show()
 
     def logout(self):
         global CURRENT_USERNAME
@@ -105,10 +122,12 @@ class LoginWindow(QtWidgets.QMainWindow):
 
 class ProjectWindow(QtWidgets.QMainWindow):
     def __init__(self, project):
+        global CURRENT_PROJECT
         super().__init__()
         self.ui = Ui_ProjectWindow()
         self.ui.setupUi(self)
         self.current_project = project
+        CURRENT_PROJECT = self.current_project
         self.loadProject()
 
     def loadProject(self):
@@ -122,6 +141,35 @@ class ProjectWindow(QtWidgets.QMainWindow):
         self.main_window = MainWindow()
         self.main_window.selected_project = ""
         self.main_window.show()
+
+    def createTask(self):
+        self.hide()
+        self.create_task_window = CreateTaskWindow()
+        self.create_task_window.show()
+
+    def openTask(self):
+        pass
+
+class TaskWindow(QtWidgets.QMainWindow):
+    def __init__(self, project, task):
+        super().__init__()
+        self.ui = Ui_ProjectWindow()
+        self.ui.setupUi(self)
+        self.current_project = project
+        self.current_task = task
+        self.loadTask()
+
+    def loadTask(self):
+        proj_id = list(self.current_project.keys())[0]
+        proj_info = self.current_project[proj_id]
+        self.ui.project_name_label.setText(proj_info["project_name"])
+        self.ui.project_description_label.setText(proj_info["project_description"])
+
+    def closeTask(self):
+        global CURRENT_PROJECT
+        self.hide()
+        self.project_window = ProjectWindow(CURRENT_PROJECT)
+        self.project_window.show()
 
 class CreateProjectWindow(QtWidgets.QMainWindow):
     def __init__(self):
@@ -139,6 +187,192 @@ class CreateProjectWindow(QtWidgets.QMainWindow):
             self.hide()
             self.main_window = MainWindow()
             self.main_window.show()
+
+    def close(self):
+        self.hide()
+        self.main_window = MainWindow()
+        self.main_window.show()
+
+class CreateTaskWindow(QtWidgets.QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.ui = Ui_CreateTaskWindow()
+        self.ui.setupUi(self)
+
+    def create(self, task_name_widget, task_desc_widget):
+        global CURRENT_PROJECT
+        task_name = task_name_widget.text()
+        task_desc = task_desc_widget.toPlainText()
+
+        result = driver.createTask(task_name, task_desc)
+
+        if result:
+            self.hide()
+            self.project_window = ProjectWindow(CURRENT_PROJECT)
+            self.project_window.show()
+
+class CodeEditorWindow(QtWidgets.QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.ui = Ui_CodeEditorWindow()
+        self.ui.setupUi(self)
+        #self.current_loaded_file = ""
+        self.selected_item = ""
+
+        self.files = db.getFiles()
+        if self.files:
+            self.populateFileList(self.files)
+        else:
+            pass
+
+    def populateFileList(self, files):
+        ''' Load listwidget with file names '''
+        for file_id, file_info in files.items():
+            item = QtWidgets.QListWidgetItem(file_info['file_name'])
+            self.ui.list_widget.addItem(item)
+
+    def createFile(self):
+        global CURRENT_LOADED_FILE
+        file_name = pag.prompt(text="Enter a name for the file:\n", title="Enter a name")
+        if file_name:
+            # add item to database
+            try:
+                result = driver.insertFile(file_name)
+                self.files = db.getFiles()
+            except:
+                print("FAILED TO INSERT FILE INTO DATABASE")
+                return
+
+            if result:
+                CURRENT_LOADED_FILE = file_name
+                self.selected_item = file_name
+                item = QtWidgets.QListWidgetItem(file_name)
+                self.ui.list_widget.addItem(item)
+                self.ui.list_widget.setCurrentItem(item)
+                self.ui.text_edit_widget.setReadOnly(False)
+                self.ui.text_edit_widget.setStyleSheet("color: white; background-color: rgb(0, 0, 0);")
+                self.ui.text_edit_widget.setPlainText("<Insert Code>")
+        else:
+            return
+
+    def itemSelected(self, item):
+        print(item.text())
+        self.selected_item = item.text()
+
+    def loadFile(self):
+        global CURRENT_LOADED_FILE
+        if not self.selected_item:
+            pass
+        else:
+            contents = self.getFileContents(self.selected_item)
+            print(contents)
+            self.ui.text_edit_widget.setReadOnly(False)
+            self.ui.text_edit_widget.setStyleSheet("color: white; background-color: rgb(0, 0, 0);")
+            self.ui.text_edit_widget.setPlainText(contents)
+            CURRENT_LOADED_FILE = self.selected_item
+
+    def getFileContents(self, file_name):
+        for file_id, file_info in self.files.items():
+            if file_info["file_name"] == file_name:
+                return self.files[file_id]["file_contents"]
+
+    def getFileInfo(self, file_name):
+        for file_id, file_info in self.files.items():
+            if file_info["file_name"] == file_name:
+                return self.files[file_id]
+
+    def saveUpdate(self):
+        global CURRENT_LOADED_FILE
+        file_info = self.getFileInfo(CURRENT_LOADED_FILE)
+        result = driver.saveFile(CURRENT_LOADED_FILE, self.ui.text_edit_widget.toPlainText(), file_info)
+        if result:
+            self.files = db.getFiles()
+        else:
+            pass
+
+    def exportFiles(self):
+        import os
+        from pathlib import Path
+
+        cwd = os.getcwd()
+        if not os.path.exists(cwd + "/exported_code"):
+            print("Creating directory folder...")
+            Path(f"{cwd}\\exported_code").mkdir(parents=True, exist_ok=True)
+            print("Creating files...")
+            for file_id, file_info in self.files.items():
+                with open(f"{cwd}\\exported_code\\{file_info['file_name']}", "w+") as f:
+                    f.write(file_info["file_contents"])
+            driver.showDialog("Files were saved in {}".format(cwd + "\\exported_code"), "Files Saved")
+        else:
+            print("Directory found, creating files...")
+            for file_id, file_info in self.files.items():
+                with open(f"{cwd}\\exported_code\\{file_info['file_name']}", "w+") as f:
+                    f.write(file_info["file_contents"])
+            driver.showDialog("Files were saved in {}".format(cwd + "\\exported_code"), "Files Saved")
+
+    def getFileName(self, path):
+        import ntpath
+        head, tail = ntpath.split(path)
+        return tail or ntpath.basename(head)
+
+    def importFile(self):
+        global CURRENT_LOADED_FILE
+        filepath = filedialog.askopenfilename(title="Select a Code File", filetypes = (("Python files", "*.py*"), ("Text files", "*.txt*"), ("all files", "*.*")))
+        filename = self.getFileName(filepath)
+        tk.Tk().destroy()
+
+        for i in range(self.ui.list_widget.count()):
+            if self.ui.list_widget.item(i).text() == filepath:
+                driver.showDialog("That file is already imported. Delete it first if you want to re-import it, if this is the intended action.", "Already Imported")
+                return
+
+        # Read file and get contents
+        contents = ""
+        with open(filepath, "r") as f:
+            for line in f:
+                contents += line
+
+        # Create list widget entry for the file
+        item = QtWidgets.QListWidgetItem(filename)
+        self.ui.list_widget.addItem(item)
+        self.ui.list_widget.setCurrentItem(item)
+
+        # Make the selected item the new file in the list
+        self.selected_item = filename
+        CURRENT_LOADED_FILE = filename
+
+        # Load the contents of the file into the editor with
+        self.ui.text_edit_widget.clear()
+        self.ui.text_edit_widget.setReadOnly(False)
+        self.ui.text_edit_widget.setStyleSheet("color: white; background-color: rgb(0, 0, 0);")
+        self.ui.text_edit_widget.setPlainText(contents)
+
+        # Insert into DB
+        driver.insertImportedFile(filename, filepath, contents)
+        self.files = db.getFiles()
+
+    def deleteFile(self):
+        global CURRENT_LOADED_FILE
+        if self.selected_item:
+            result = driver.deleteFile(self.selected_item)
+            if result:
+                for i in range(self.ui.list_widget.count()):
+                    if self.ui.list_widget.item(i).text() == self.selected_item:
+                        item = QtWidgets.QListWidgetItem(self.selected_item)
+                        self.ui.list_widget.takeItem(i)
+                        if CURRENT_LOADED_FILE == self.selected_item:
+                            CURRENT_LOADED_FILE = ""
+                            self.ui.text_edit_widget.clear()
+                            self.ui.text_edit_widget.setReadOnly(True)
+                            self.ui.text_edit_widget.setStyleSheet("background-color: rgb(211, 211, 211);")
+                        self.selected_item = ""
+                        self.files = db.getFiles()
+                        print("Item removed from list")
+                        return
+            else:
+                pass
+        else:
+            return
 
 if __name__ == '__main__':
     # Initialize database at startup

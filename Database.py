@@ -1,4 +1,4 @@
-import project_manager
+import project_manager as PM
 import sqlite3
 from sqlite3 import Error
 import os
@@ -23,6 +23,7 @@ class Database:
 
         self.create_projects_table = """CREATE TABLE IF NOT EXISTS projects (
                                         project_id INTEGER PRIMARY KEY,
+                                        project_owner VARCHAR(100) NOT NULL,
                                         project_name VARCHAR(100) NOT NULL,
                                         project_creation_date VARCHAR(10) NOT NULL,
                                         project_due_date VARCHAR(10),
@@ -55,8 +56,19 @@ class Database:
                                         issue_isCompleted INTEGER DEFAULT 0
                                     ); """
 
+        self.create_code_files_table = """CREATE TABLE IF NOT EXISTS code_files (
+                                        file_id INTEGER PRIMARY KEY,
+                                        file_owner VARCHAR(100) NOT NULL,
+                                        file_name VARCHAR(100) NOT NULL,
+                                        file_creation_date VARCHAR(10),
+                                        file_last_save_date VARCHAR(10),
+                                        file_contents VARCHAR(999999),
+                                        file_isImported INTEGER DEFAULT 0,
+                                        file_path VARCHAR(1000)
+                                    ); """
+
         if self.conn is not None:
-            self.create_tables(self.conn, [self.create_accounts_table, self.create_projects_table, self.create_tasks_table, self.create_issues_table])
+            self.create_tables(self.conn, [self.create_accounts_table, self.create_projects_table, self.create_tasks_table, self.create_issues_table, self.create_code_files_table])
         else:
             print("Error -- no database connection found.")
             exit()
@@ -91,6 +103,28 @@ class Database:
                 print(e)
                 return False
         #pyautogui.alert(text = "Insertions successful!", title = "SUCCESS", button = 'OK')
+        self.conn.commit()
+        return True
+
+    def update(self, query, values):
+        c = self.conn.cursor()
+        try:
+            c.execute(query, values)
+            print("Update successful!")
+        except Error as e:
+            print("Update unsuccessful: {}".format(e))
+            return False
+        self.conn.commit()
+        return True
+
+    def delete(self, query, values):
+        c = self.conn.cursor()
+        try:
+            c.execute(query, values)
+            print("Delete successful!")
+        except Error as e:
+            print("Delete unsuccessful: {}".format(e))
+            return False
         self.conn.commit()
         return True
 
@@ -143,27 +177,50 @@ class Database:
     def getProjects(self):
         c = self.conn.cursor()
         try:
-            projects = c.execute("""SELECT project_id, project_name, project_creation_date, project_due_date, project_completed_date, project_description, 
-            project_isCompleted, project_notes FROM projects""").fetchall()
+            projects = c.execute("""SELECT project_id, project_owner, project_name, project_creation_date, project_due_date, project_completed_date, project_description, 
+            project_isCompleted, project_notes FROM projects WHERE project_owner = ?""", (PM.CURRENT_USERNAME,)).fetchall()
 
             projects_dict = {}
-            for (proj_id, proj_name, proj_creation_date, proj_due_date, proj_completed_date, proj_desc, proj_isCompleted, proj_notes) in projects:
-                projects_dict[proj_id] = {"project_name":proj_name, "project_creation_date":proj_creation_date, "project_due_date":proj_due_date, "project_completed_date":proj_completed_date, "project_description":proj_desc, "project_isCompleted":proj_isCompleted, "project_notes":proj_notes}
+            for (proj_id, proj_owner, proj_name, proj_creation_date, proj_due_date, proj_completed_date, proj_desc, proj_isCompleted, proj_notes) in projects:
+                projects_dict[proj_id] = {"project_owner":proj_owner, "project_name":proj_name, "project_creation_date":proj_creation_date, "project_due_date":proj_due_date, "project_completed_date":proj_completed_date, "project_description":proj_desc, "project_isCompleted":proj_isCompleted, "project_notes":proj_notes}
             print("Projects: {}".format(projects_dict))
             return projects_dict
         except Error as e:
-            print(e)
+            print("Error in getProjects(): {}".format(e))
 
-    def getSelectedProject(self, project):
+    def getFiles(self):
         c = self.conn.cursor()
         try:
-            projects = c.execute("""SELECT project_id, project_name, project_creation_date, project_due_date, project_completed_date, project_description, 
-            project_isCompleted, project_notes FROM projects""").fetchall()
+            files = c.execute("""SELECT file_id, file_owner, file_name, file_creation_date, file_last_save_date, file_contents, file_isImported, file_path FROM code_files WHERE file_owner = ?""", (PM.CURRENT_USERNAME,)).fetchall()
 
-            projects_dict = {}
-            for (proj_id, proj_name, proj_creation_date, proj_due_date, proj_completed_date, proj_desc, proj_isCompleted, proj_notes) in projects:
-                projects_dict[proj_id] = {"project_name":proj_name, "project_creation_date":proj_creation_date, "project_due_date":proj_due_date, "project_completed_date":proj_completed_date, "project_description":proj_desc, "project_isCompleted":proj_isCompleted, "project_notes":proj_notes}
-            print("Projects: {}".format(projects_dict))
-            return projects_dict
+            files_dict = {}
+            for (file_id, file_owner, file_name, file_creation_date, file_last_save_date, file_contents, file_isImported, file_path) in files:
+                files_dict[file_id] = {"file_owner":file_owner, "file_name":file_name, "file_creation_date":file_creation_date, "file_last_save_date":file_last_save_date, "file_contents":file_contents, "file_isImported":file_isImported, "file_path":file_path}
+            print("Files: {}".format(files_dict))
+            return files_dict
         except Error as e:
-            print(e)
+            print("Error in getFiles() in Database.py: {}".format(e))
+
+    def getFileIds(self):
+        c = self.conn.cursor()
+        try:
+            id_col = c.execute("""SELECT file_id FROM code_files""")
+            ids = [idx[0] for idx in id_col]
+            return ids
+        except Error as e:
+            print("Could not get file IDs: {}".format(e))
+            return
+
+    # def getSelectedProject(self, project):
+    #     c = self.conn.cursor()
+    #     try:
+    #         projects = c.execute("""SELECT project_id, project_name, project_creation_date, project_due_date, project_completed_date, project_description, 
+    #         project_isCompleted, project_notes FROM projects""").fetchall()
+
+    #         projects_dict = {}
+    #         for (proj_id, proj_name, proj_creation_date, proj_due_date, proj_completed_date, proj_desc, proj_isCompleted, proj_notes) in projects:
+    #             projects_dict[proj_id] = {"project_name":proj_name, "project_creation_date":proj_creation_date, "project_due_date":proj_due_date, "project_completed_date":proj_completed_date, "project_description":proj_desc, "project_isCompleted":proj_isCompleted, "project_notes":proj_notes}
+    #         print("Projects: {}".format(projects_dict))
+    #         return projects_dict
+    #     except Error as e:
+    #         print(e)

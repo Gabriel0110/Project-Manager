@@ -95,6 +95,7 @@ class Ui_ProjectWindow(object):
         self.retranslateUi(ProjectWindow)
 
         self.close_project_button.clicked.connect(ProjectWindow.closeProject)
+        self.create_new_task_button.clicked.connect(ProjectWindow.createTask)
 
         QtCore.QMetaObject.connectSlotsByName(ProjectWindow)
 
@@ -111,7 +112,7 @@ class Ui_ProjectWindow(object):
         self.create_new_issue_button.setText(_translate("ProjectWindow", "Create New Issue"))
         self.close_project_button.setText(_translate("ProjectWindow", "Close Project"))
         self.groupBox_3.setTitle(_translate("ProjectWindow", "DeleteProject"))
-        self.delete_project_button.setText(_translate("ProjectWindow", "Delete Project"))
+        self.delete_project_button.setText(_translate("ProjectWindow", "Delete Me"))
         self.delete_checkbox_one.setText(_translate("ProjectWindow", "Delete"))
         self.delete_checkbox_two.setText(_translate("ProjectWindow", "Yes, Delete"))
         self.email_button.setText(_translate("ProjectWindow", "Email Reminder"))
