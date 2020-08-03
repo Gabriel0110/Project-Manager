@@ -3,14 +3,14 @@ Project Management tool to keep track of projects, project tasks, and their bugs
 
 ** Currently, creating tasks and issues within projects is not implemented yet, but are on their way.
 
-Main Screen  
+Login Screen  
 ![](/images/login_window.PNG)  
 
-Character Select  
+Main Window  
 ![](/images/main_window.PNG)  
 
-Character Creation  
+Inside a Project  
 ![](/images/project_window.PNG)  
 
-Options Menu after selecting a character  
+Code Editor Tool  
 ![](/images/code_editor_window.PNG)  
