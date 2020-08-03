@@ -9,19 +9,22 @@ from tkinter import *
 from tkinter import filedialog
 
 import Database
+import driver
+from client import Client
 
 from login_ui import Ui_Login
 from main_ui import Ui_MainWindow
 from create_account_ui import Ui_CreateAccount
 from create_project_ui import Ui_CreateProjectWindow
 from project_window_ui import Ui_ProjectWindow
+#from create_task_ui import Ui_CreateTaskWindow
+#from create_issue_ui import Ui_CreateIssueWindow
 from code_editor_ui import Ui_CodeEditorWindow
-
-import driver
 
 # Who is logged in
 CURRENT_USERNAME = ""
 
+# Active project/file
 CURRENT_PROJECT = None
 CURRENT_LOADED_FILE = None
 
@@ -39,7 +42,6 @@ class MainWindow(QtWidgets.QMainWindow):
             pass
 
     def populateProjectList(self, projects):
-        ''' Load listwidget with project names '''
         for project_id, project_info in projects.items():
             item = QtWidgets.QListWidgetItem(project_info['project_name'])
             item.setTextAlignment(QtCore.Qt.AlignHCenter)
@@ -57,9 +59,10 @@ class MainWindow(QtWidgets.QMainWindow):
     def openSelectedProject(self):
         project = {proj_id:proj_info for proj_id, proj_info in self.projects.items() if self.selected_project in proj_info.values()}
         #print(project)
-        self.hide()
-        self.project_window = ProjectWindow(project)
-        self.project_window.show()
+        if project:
+            self.hide()
+            self.project_window = ProjectWindow(project)
+            self.project_window.show()
 
     def openCodeEditor(self):
         self.code_editor_window = CodeEditorWindow()
@@ -110,12 +113,19 @@ class LoginWindow(QtWidgets.QMainWindow):
         self.create_account_window.show()
 
     def processLogin(self, user, pw):
+        global CURRENT_USERNAME
         username = user.text()
         password = pw.text()
 
         process = driver.processLogin(username, password)
 
         if process:
+            # conn_attempt = CLIENT.connect()
+            # if conn_attempt:
+            #     self.hide()
+            #     self.main_window = MainWindow()
+            #     self.main_window.show()
+            CURRENT_USERNAME = username
             self.hide()
             self.main_window = MainWindow()
             self.main_window.show()
@@ -149,6 +159,57 @@ class ProjectWindow(QtWidgets.QMainWindow):
 
     def openTask(self):
         pass
+
+    def createIssue(self):
+        pass
+
+    def openIssue(self):
+        pass
+
+    def deleteProject(self, checkBoxOne, checkBoxTwo):
+        global CURRENT_PROJECT
+        if checkBoxOne.isChecked() and checkBoxTwo.isChecked():
+            self.hide()
+            self.main_window = MainWindow()
+            proj_id = list(self.current_project.keys())[0]
+            proj_info = self.current_project[proj_id]
+            proj_name = proj_info['project_name']
+            for i in range(self.main_window.ui.project_list_widget.count()):
+                if self.main_window.ui.project_list_widget.item(i).text() == proj_name:
+                    self.main_window.ui.project_list_widget.takeItem(i)
+
+            self.current_project = None
+            CURRENT_PROJECT = None
+            self.main_window.projects = db.getProjects()
+            self.main_window.show()
+            result = driver.deleteProject(proj_name)
+        else:
+            driver.showDialog("If you really want to throw a project into oblivion, both checkboxes must be checked.", "Whoa whoa")
+            return
+
+    def sendEmail(self):
+        import smtplib
+        global CURRENT_USERNAME
+        login_info = db.getLoginInfo()
+        email = login_info[CURRENT_USERNAME][1]
+        
+        sender, receiver = email, email
+        message = f"""From: {CURRENT_USERNAME} <{email}>
+        To: {CURRENT_USERNAME} <{email}>
+        Subject: PROJECT REMINDER: {self.current_project}
+
+        This is a project reminder sent from the Project Manager tool.
+        """
+
+        try:
+            at = email.find('@')
+            dot = email.find('.com')
+            smtplib.SMTP(f'mail.{email[at+1:dot]}.com', 25)
+            smtpObj = smtplib.SMTP('localhost')
+            smptObj.sendmail(sender, receiver, message)
+            print("Email sent successfully!")
+        except Exception as e:
+            print(f"Unable to send email: {e}")
 
 class TaskWindow(QtWidgets.QMainWindow):
     def __init__(self, project, task):
@@ -377,6 +438,9 @@ class CodeEditorWindow(QtWidgets.QMainWindow):
 if __name__ == '__main__':
     # Initialize database at startup
     db = Database.Database()
+
+    # Active client
+    CLIENT = Client()
 
     app = QtWidgets.QApplication(sys.argv)
     w = LoginWindow()

@@ -1,5 +1,6 @@
 import socket
 import pickle
+import driver
 
 class Client:
     _HOST_IP = '10.0.0.211'
@@ -18,9 +19,12 @@ class Client:
         print("Attempting to connect...")
         try:
             self.client_socket.connect((self.getHostIP(), self.getPort()))
-            print("CONNECTION SUCCESSFUL!\n")
+            print("CONNECTION TO SERVER SUCCESSFUL!\n")
+            return True
         except socket.error as e:
-            print(str(e))
+            print(f"Error with connecting to server: {e}")
+            driver.showDialog("Unable to connect to server at this time.", "Unable to Connect")
+            return False
 
 def main():
     client = Client()

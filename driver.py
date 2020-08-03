@@ -91,7 +91,25 @@ def createProject(proj_name, proj_desc):
         else:
             return True
 
+
+def deleteProject(proj_name):
+    db = Database.Database()
+
+    query = """DELETE FROM projects WHERE project_name = ?;"""
+    values = (str(proj_name),)
+    result = db.delete(query, values)
+    if result is False:
+        print("Error with deleting file.")
+        return False
+    else:
+        return True
+
+
 def createTask(task_name, task_desc):
+    pass
+
+
+def createIssue(issue_name, issue_desc):
     pass
 
 

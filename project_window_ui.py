@@ -9,6 +9,7 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+from functools import partial
 
 
 class Ui_ProjectWindow(object):
@@ -96,6 +97,9 @@ class Ui_ProjectWindow(object):
 
         self.close_project_button.clicked.connect(ProjectWindow.closeProject)
         self.create_new_task_button.clicked.connect(ProjectWindow.createTask)
+        #self.create_new_issue_button.clicked.connect(ProjectWindow.createIssue)
+        self.delete_project_button.clicked.connect(partial(ProjectWindow.deleteProject, self.delete_checkbox_one, self.delete_checkbox_two))
+        #self.email_button.clicked.connect(ProjectWindow.sendEmail)
 
         QtCore.QMetaObject.connectSlotsByName(ProjectWindow)
 
